@@ -146,6 +146,7 @@ typedef struct  _HID_ENUM_INFO  {
 #define PI_VID					0x5F3
 
 typedef unsigned int (PIE_HID_CALL *PHIDDataEvent)(unsigned char *pData, unsigned int deviceID, unsigned int error);
+typedef void (PIE_HID_CALL *PHIDDataEventEx)(unsigned char *pData, int datalen,void*uData, unsigned int deviceID, unsigned int error);
 typedef unsigned int (PIE_HID_CALL *PHIDErrorEvent)( unsigned int deviceID,unsigned int status);
 
 void PIE_HID_CALL GetErrorString(int errNumb,char* EString,int size);
@@ -162,7 +163,10 @@ unsigned int PIE_HID_CALL ReadLast(long hnd, unsigned char *data);
 unsigned int PIE_HID_CALL ClearBuffer(long hnd);
 unsigned int PIE_HID_CALL GetReadLength(long hnd);
 unsigned int PIE_HID_CALL GetWriteLength(long hnd);
-unsigned int PIE_HID_CALL SetDataCallback(long hnd, PHIDDataEvent pDataEvent);
+
+#define SetDataCallback(hnd, pDataEvent) SetDataCallbackEx((hnd), (PHIDDataEventEx)(pDataEvent),NULL,0)
+unsigned int PIE_HID_CALL SetDataCallbackEx(long hnd, PHIDDataEventEx pDataEvent,void*uData,int is_ex_event_handler);
+
 unsigned int PIE_HID_CALL SetErrorCallback(long hnd, PHIDErrorEvent pErrorCall);
 #ifdef _WIN32
 void PIE_HID_CALL DongleCheck2(int k0, int k1, int k2, int k3, int n0, int n1, int n2, int n3, int &r0, int &r1, int &r2, int &r3);

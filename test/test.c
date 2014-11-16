@@ -28,6 +28,10 @@ void print_buf(char *data, int len)
 	printf("\n\n");
 
 }
+void PIE_HID_CALL onHIDEvent (unsigned char *pData, int datalen, void *uData, unsigned int deviceID, unsigned int error) {
+	printf ("\nEVENT! devid:%d err:%d datalen:%d data[0]:%d data[1]:%d data[2]:%d ",deviceID,error,datalen,(int)(pData[0]),(int)(pData[1]),(int)(pData[2]));
+	fflush (stdout);
+}
 
 int main(void)
 {
@@ -44,8 +48,8 @@ int main(void)
 		printf("\tPID: %04x\n", dev->PID);
 		printf("\tUsage Page: %04x\n", dev->UP);
 		printf("\tUsage:      %04x\n", dev->Usage);
-		printf("\tVersion: %d\n\n", dev->Version);
-
+		printf("\tVersion: %d\n", dev->Version);
+		printf("\tDevicePath %s\n\n",dev->DevicePath);
 
 		handle = dev->Handle;
 		unsigned int res = SetupInterfaceEx(handle);
@@ -60,44 +64,11 @@ int main(void)
 		exit(1);
 	}
 	
-	char data[80];
+
+	SetDataCallbackEx (handle,onHIDEvent,NULL,1);
+
 	while (1) {
-		
-		unsigned int res = 0;
-
-		res  = ReadLast(handle, data);
-		if (res == 0) {
-			printf("LAST: \n");
-			print_buf(data, 33);
-			printf("ENDLAST\n\n");
-		}
-
-		res = 0;
-		
-		while (res == 0) {
-			res = BlockingReadData(handle, data, 20);
-			if (res == 0) {
-				print_buf(data, 33);
-			}
-			else if (res == PIE_HID_READ_INSUFFICIENT_DATA) {
-				printf(".");
-				fflush(stdout);
-			}	
-			else {
-				printf("Error Reading\n");
-			}
-		}
-		
-		printf("Sleeping\n");
-		#if 1
-		if (res != 0) {
-			//usleep(10*1000); // Sleep 10 milliseconds.
-			sleep(2); // 2 seconds
-		}
-		#endif
-		
-		//ClearBuffer(handle);
-		
+		sleep(2); putchar('.');fflush (stdout);
 	}
 
 

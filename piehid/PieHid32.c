@@ -68,14 +68,17 @@ struct pie_device {
 	struct report last_report;
 
 	/* Callbacks */
-	PHIDDataEvent data_event_callback;
+	PHIDDataEventEx data_event_callback; 
+	int is_ex_event_handler;
+	void *uData;
 	PHIDErrorEvent error_event_callback;
 };
 
 static struct pie_device pie_devices[MAX_XKEY_DEVICES];
 
 static int cond_timedwait(pthread_cond_t *cond, pthread_mutex_t *mutex, const struct timespec *abstime, const struct pie_device *pd);
-static int return_data(struct pie_device *pd, unsigned char *data);
+#define return_data(pd,data) return_data_ex((pd),(data),NULL)
+static int return_data_ex(struct pie_device *pd, unsigned char *data,int *datalen);
 
 struct device_map_entry {
     unsigned short vid;
@@ -314,10 +317,15 @@ static void *callback_thread(void *param)
 		if (!pd->shutdown && pd->data_event_callback && !pd->disable_data_callback) {
 			if (pd->front_of_buffer != pd->back_of_buffer) {
 				/* There is data available. Copy it to buf. */
-				return_data(pd, buf);
+				int len=0;
+				return_data_ex(pd, buf,&len);
 
 				/* Call the callback. */
-				pd->data_event_callback(buf, pd->handle, 0);
+				if (pd->is_ex_event_handler){
+					pd->data_event_callback(buf,len,pd->uData, pd->handle, 0);
+				} else {
+					((PHIDDataEvent)(pd->data_event_callback))(buf, pd->handle, 0);
+				}
 			}
 		}
 
@@ -444,11 +452,13 @@ void  PIE_HID_CALL CleanupInterface(long hnd)
 	CloseInterface(hnd);
 }
 
-static int return_data(struct pie_device *pd, unsigned char *data)
+ 
+static int return_data_ex(struct pie_device *pd, unsigned char *data, int *datalen)
 {
 	/* Return the first report in the queue. */
 	struct report *rpt = &pd->buffer[pd->front_of_buffer];
 	memcpy(data, rpt->buffer, rpt->length);
+	if (datalen)  *datalen=rpt->length;
 	
 	/* Increment the front of buffer pointer. */
 	pd->front_of_buffer++;
@@ -606,13 +616,14 @@ unsigned int PIE_HID_CALL GetWriteLength(long hnd)
 {
 	return 36;
 }
-unsigned int PIE_HID_CALL SetDataCallback(long hnd, PHIDDataEvent pDataEvent)
+unsigned int PIE_HID_CALL SetDataCallbackEx(long hnd, PHIDDataEventEx pDataEvent,void *uData,int is_ex_event_handler)
 {
 	if (hnd >= MAX_XKEY_DEVICES)
 		return PIE_HID_DATACALLBACK_BAD_HANDLE;
 	
 	struct pie_device *pd = &pie_devices[hnd];
-	
+	pd->uData=uData;
+	pd->is_ex_event_handler=is_ex_event_handler;
 	pd->data_event_callback = pDataEvent;	
 	
 	return 0;
