@@ -124,7 +124,7 @@ unsigned int PIE_HID_CALL EnumeratePIE(long VID, TEnumHIDInfo *info, long *count
 	cur = hi;
 	while (cur && *count < MAX_XKEY_DEVICES) {
 		if (cur->vendor_id != PI_VID) {
-			printf("Continuing, vid: %hx pivid: %hx\n", cur->vendor_id, (unsigned short)PI_VID);
+			//printf("Continuing, vid: %hx pivid: %hx\n", cur->vendor_id, (unsigned short)PI_VID);
 			cur = cur->next;
 			continue;
 		}
@@ -155,7 +155,7 @@ unsigned int PIE_HID_CALL EnumeratePIE(long VID, TEnumHIDInfo *info, long *count
 		inf->Version = cur->release_number;
 		inf->ManufacturerString[0] = '\0';
 		inf->ProductString[0] = '\0';
-
+		inf->interface_number=cur->interface_number;
 		struct pie_device *pd = &pie_devices[*count];
 		pd->path = cur->path;
 		(*count)++;

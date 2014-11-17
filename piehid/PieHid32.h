@@ -140,6 +140,7 @@ typedef struct  _HID_ENUM_INFO  {
     unsigned int   Version;
     char   ManufacturerString[128];
     char   ProductString[128];
+	int interface_number;
 } TEnumHIDInfo;
 
 #define MAX_XKEY_DEVICES		128
