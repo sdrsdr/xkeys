@@ -12,11 +12,12 @@ cmake_minimum_required(VERSION 2.8.0)
 if(COMMAND cmake_policy)
   cmake_policy(SET CMP0003 NEW)
 endif(COMMAND cmake_policy)
-
 # Link against libusb and pthreads.
 find_package(PkgConfig)
 PKG_CHECK_MODULES(LIBUSB REQUIRED libusb-1.0)
 find_package(Threads REQUIRED)
+
+SET(CMAKE_INSTALL_PREFIX "/opt/atemcontrol/xkeys" CACHE PATH "atemcontrol default install path" FORCE)
 
 # Source (cpp) files
 SET(SRCS
